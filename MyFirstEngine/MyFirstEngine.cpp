@@ -1,10 +1,36 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <glfw3.h>
+#include <array>
 #include "Shader.h"
 
 int width, height;
 Shader* myShader;
+float vertices[] = {
+-0.25f, -0.25f, 0.0f,
+0.25f, -0.25f, 0.0f,
+0.25f, 0.25f, 0.0f
+};
+
+void DrawTriangle(std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f }, std::array<float, 3> offset = {0.0f, 0.0f, 0.0f}, std::array<float, 3> scale = {1.0f, 1.0f, 1.0f})
+{
+	myShader->SetUniformVec3("offset", offset);
+	myShader->SetUniformVec3("scale", scale);
+	myShader->SetUniformVec4("color", color);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void DrawRectangle(std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f }, std::array<float, 3> offset = {0.0f, 0.0f, 0.0f}, std::array<float, 3> scale = {1.0f, 1.0f, 1.0f})
+{
+	myShader->SetUniformVec3("offset", offset);
+	myShader->SetUniformVec3("scale", scale);
+	myShader->SetUniformVec4("color", color);
+	myShader->SetUniformVec3("rotation", { 1.0f, 1.0f, 1.0f });
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	myShader->SetUniformVec3("rotation", { -1.0f, -1.0f, 1.0f });
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
 
 int main()
 {
@@ -29,12 +55,6 @@ int main()
 	myShader = new Shader();
 	myShader->Initialize("VertexShader.glsl", "FragmentShader.glsl");
 
-    float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
-    };
-
     unsigned int VBO;
     glGenBuffers(1, &VBO);
 
@@ -55,7 +75,10 @@ int main()
 
 		myShader->Use();
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		std::array<float, 4> color = { 1.0f, 0.0f, 0.0f, 1.0f };
+        //DrawTriangle();
+		DrawRectangle(color);
 
         glfwSwapBuffers(window);
 

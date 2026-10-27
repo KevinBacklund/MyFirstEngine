@@ -90,3 +90,15 @@ void Shader::Use()
 {
 	glUseProgram(myShaderProgram);
 }
+
+void Shader::SetUniformVec3(const char* aName, std::array<float, 3> vec)
+{
+	int location = glGetUniformLocation(myShaderProgram, aName);
+	glUniform3f(location, vec[0], vec[1], vec[2]);
+}
+
+void Shader::SetUniformVec4(const char* aName, std::array<float, 4> vec)
+{
+	int location = glGetUniformLocation(myShaderProgram, aName);
+	glUniform4f(location, vec[0], vec[1], vec[2], vec[3]);
+}
