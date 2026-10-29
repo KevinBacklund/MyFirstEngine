@@ -17,6 +17,8 @@ void DrawTriangle(std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f }, std::
 	myShader->SetUniformVec3("offset", offset);
 	myShader->SetUniformVec3("scale", scale);
 	myShader->SetUniformVec4("color", color);
+    myShader->SetUniformVec3("rotation", { 1.0f, 1.0f, 1.0f });
+
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
@@ -30,6 +32,23 @@ void DrawRectangle(std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f }, std:
 
 	myShader->SetUniformVec3("rotation", { -1.0f, -1.0f, 1.0f });
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
+void DrawHouse()
+{
+	std::array<float, 4> houseColor = { 1.0f, 0.0f, 0.0f, 1.0f };
+	std::array<float, 4> roofColor = { 0.0f, 1.0f, 1.0f, 1.0f };
+	std::array<float, 4> doorColor = { 0.5f, 0.25f, 0.0f, 1.0f };
+	std::array<float, 4> windowColor = { 0.0f, 0.0f, 1.0f, 1.0f };
+    
+	std::array<float, 3> houseOffset = { 0.0f, -0.25f, 0.0f };
+
+	DrawRectangle(houseColor, houseOffset, { 1.0f, 1.0f, 1.0f });
+	DrawTriangle(roofColor, { 0.0f, 0.125f, 0.0f }, { 1.2f, 0.5f, 1.0f });
+
+	DrawRectangle(doorColor, { 0.0f, -0.375f, 0.0f }, { 0.25f, 0.5f, 1.0f });
+	DrawRectangle(windowColor, { -0.15f, -0.25f, 0.0f }, { 0.25f, 0.25f, 1.0f });
+	DrawRectangle(windowColor, { 0.15f, -0.25f, 0.0f }, { 0.25f, 0.25f, 1.0f });
 }
 
 int main()
@@ -75,10 +94,7 @@ int main()
 
 		myShader->Use();
 
-
-		std::array<float, 4> color = { 1.0f, 0.0f, 0.0f, 1.0f };
-        //DrawTriangle();
-		DrawRectangle(color);
+		DrawHouse();
 
         glfwSwapBuffers(window);
 
