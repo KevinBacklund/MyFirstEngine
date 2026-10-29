@@ -34,10 +34,9 @@ void DrawRectangle(std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f }, std:
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void DrawHouse()
+void DrawHouse(std::array<float, 4> roofColor = { 0.0f, 1.0f, 1.0f, 1.0f })
 {
 	std::array<float, 4> houseColor = { 1.0f, 0.0f, 0.0f, 1.0f };
-	std::array<float, 4> roofColor = { 0.0f, 1.0f, 1.0f, 1.0f };
 	std::array<float, 4> doorColor = { 0.5f, 0.25f, 0.0f, 1.0f };
 	std::array<float, 4> windowColor = { 0.0f, 0.0f, 1.0f, 1.0f };
     
@@ -60,6 +59,8 @@ int main()
 
 	width = 640;
 	height = 480;
+
+	std::array<float, 4> roofColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 
     window = glfwCreateWindow(width, height, "My First Engine", NULL, NULL);
     if (!window)
@@ -94,7 +95,14 @@ int main()
 
 		myShader->Use();
 
-		DrawHouse();
+		
+
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		{
+			roofColor = {(float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX, 1.0f};
+		}
+
+		DrawHouse(roofColor);
 
         glfwSwapBuffers(window);
 
