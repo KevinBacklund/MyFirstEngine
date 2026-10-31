@@ -4,6 +4,8 @@
 #include <array>
 #include "Shader.h"
 
+#define PI 3.14159265358979323846f
+
 int width, height;
 Shader* myShader;
 float vertices[] = {
@@ -33,12 +35,27 @@ GLenum CheckError()
 	return errorCode;
 }
 
+float DegreesToRadians(float degrees)
+{
+	return degrees * (PI / 180.0f);
+}
+
+float SinDegrees(float degrees)
+{
+	return sinf(DegreesToRadians(degrees));
+}
+
+float CosDegrees(float degrees)
+{
+	return cosf(DegreesToRadians(degrees));
+}
+
 void DrawTriangle(std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f }, std::array<float, 3> offset = {0.0f, 0.0f, 0.0f}, std::array<float, 3> scale = {1.0f, 1.0f, 1.0f})
 {
 	myShader->SetUniformVec3("offset", offset);
 	myShader->SetUniformVec3("scale", scale);
 	myShader->SetUniformVec4("color", color);
-    myShader->SetUniformVec3("rotation", { 1.0f, 1.0f, 1.0f });
+    myShader->SetUniformVec3("rotation", { SinDegrees(0.0f), CosDegrees(0.0f), 1.0f });
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -48,10 +65,10 @@ void DrawRectangle(std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f }, std:
 	myShader->SetUniformVec3("offset", offset);
 	myShader->SetUniformVec3("scale", scale);
 	myShader->SetUniformVec4("color", color);
-	myShader->SetUniformVec3("rotation", { 1.0f, 1.0f, 1.0f });
+	myShader->SetUniformVec3("rotation", { SinDegrees(0.0f), CosDegrees(0.0f), 1.0f });
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
-	myShader->SetUniformVec3("rotation", { -1.0f, -1.0f, 1.0f });
+	myShader->SetUniformVec3("rotation", { SinDegrees(180.0f), CosDegrees(180.0f), 1.0f });
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 

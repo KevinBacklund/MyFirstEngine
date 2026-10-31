@@ -11,7 +11,10 @@ out vec4 vertexColor;
 void main()
 {
 	vec3 position = aPos;
-	vec3 rotatedPosition = position * rotation;
+	vec3 rotatedPosition;
+	rotatedPosition.x = position.x * rotation.y + position.y * rotation.x;
+	rotatedPosition.y = position.y * rotation.y - position.x * rotation.x;
+	rotatedPosition.z = position.z;
 	gl_Position = vec4(rotatedPosition * scale + offset, 1.0);
 	vertexColor = color;
 }
