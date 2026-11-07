@@ -17,7 +17,7 @@ void CubeMesh::SetupVertices()
          -0.5f,  0.5f,  0.5f, // 3: Top-Left
 
          // Back Face (-Z)
-         -0.5f, -0.5f, -0.5f, // 4: Bottom-Right (from local view)
+         -0.5f, -0.5f, -0.5f, // 4: Bottom-Right
          -0.5f,  0.5f, -0.5f, // 5: Top-Right
           0.5f,  0.5f, -0.5f, // 6: Top-Left
           0.5f, -0.5f, -0.5f, // 7: Bottom-Left

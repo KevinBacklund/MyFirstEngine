@@ -4,6 +4,7 @@
 #include <array>
 #include "Shader.h"
 #include "cubemesh.h"
+#include "pyramidmesh.h"
 #include "glm.hpp"
 
 #define PI 3.14159265358979323846f
@@ -122,6 +123,10 @@ int main()
 	CubeMesh* myCubeMesh = new CubeMesh({ 0.0f, 1.0f, 0.0f });
 	glm::vec3 cubeRotation = { 0.0f, 0.0f, 0.0f };
 
+	PyramidMesh* myPyramidMesh = new PyramidMesh({ 1.0f, 0.0f, 0.0f });
+	myPyramidMesh->SetRotation({ 35.0f, 0.0f, 0.0f });
+	glm::vec3 pyramidScale = { 1.0f, 1.0f, 1.0f };
+
  //   unsigned int VBO;
  //   glGenBuffers(1, &VBO);
 
@@ -154,9 +159,25 @@ int main()
 		cubeRotation.y += 0.2f;
 		cubeRotation.z += 0.1f;
 		myCubeMesh->SetRotation(cubeRotation);
+		myCubeMesh->SetOffset({ 1.5f, 0.8f, 0.0f });
 
 		myCubeMesh->Draw(myShader);
+
+		myCubeMesh->SetRotation({ 0.0f, 0.0f, 0.0f });
+		myCubeMesh->SetOffset({ 1.5f, -0.8f, 0.0f });
 		
+		myCubeMesh->Draw(myShader);
+
+		myPyramidMesh->SetOffset({ -2.0f, 0.8f, 0.0f });
+		pyramidScale = { 1.0f + 0.5f * sinf((float)glfwGetTime()), 1.0f + 0.5f * sinf((float)glfwGetTime()), 1.0f + 0.5f * sinf((float)glfwGetTime()) };
+		myPyramidMesh->SetScale(pyramidScale);
+		myPyramidMesh->Draw(myShader);
+
+		myPyramidMesh->SetScale({ 1.0f, 1.0f, 1.0f });
+		myPyramidMesh->SetOffset({ -2.0f, -0.8f, 0.0f });
+		myPyramidMesh->Draw(myShader);
+
+
         glfwSwapBuffers(window);
 
         glfwPollEvents();

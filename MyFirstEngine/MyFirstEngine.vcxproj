@@ -147,11 +147,13 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MyFirstEngine.cpp" />
+    <ClCompile Include="PyramidMesh.cpp" />
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CubeMesh.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="PyramidMesh.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
