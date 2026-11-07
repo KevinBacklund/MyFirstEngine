@@ -3,6 +3,8 @@
 #include <glfw3.h>
 #include <array>
 #include "Shader.h"
+#include "cubemesh.h"
+#include "glm.hpp"
 
 #define PI 3.14159265358979323846f
 
@@ -95,8 +97,8 @@ int main()
     if (!glfwInit())
         return -1;
 
-	width = 640;
-	height = 480;
+	width = 800;
+	height = 600;
 
 	std::array<float, 4> roofColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -110,40 +112,51 @@ int main()
     glfwMakeContextCurrent(window);
     gladLoadGL();
 
+	glCullFace(GL_BACK);
+
+	glEnable(GL_DEPTH_TEST);
+
 	myShader = new Shader();
 	myShader->Initialize("VertexShader.glsl", "FragmentShader.glsl");
 
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
+	CubeMesh* myCubeMesh = new CubeMesh({ 0.0f, 1.0f, 0.0f });
+	glm::vec3 cubeRotation = { 0.0f, 0.0f, 0.0f };
 
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+ //   unsigned int VBO;
+ //   glGenBuffers(1, &VBO);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	//unsigned int VAO;
+	//glGenVertexArrays(1, &VAO);
+	//
+ //   glBindVertexArray(VAO);
+ //   glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+ //   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+ //   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+ //   glEnableVertexAttribArray(0);
 
 	CheckError();
 
     while (!glfwWindowShouldClose(window))
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		myShader->Use();
+		//myShader->Use();
 
+		//if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		//{
+		//	roofColor = {(float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX, 1.0f};
+		//}
+
+		//DrawHouse(roofColor);
+		cubeRotation.x += 0.5f;
+		cubeRotation.y += 0.2f;
+		cubeRotation.z += 0.1f;
+		myCubeMesh->SetRotation(cubeRotation);
+
+		myCubeMesh->Draw(myShader);
 		
-
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		{
-			roofColor = {(float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX, 1.0f};
-		}
-
-		DrawHouse(roofColor);
-
         glfwSwapBuffers(window);
 
         glfwPollEvents();

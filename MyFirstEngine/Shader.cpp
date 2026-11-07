@@ -102,3 +102,9 @@ void Shader::SetUniformVec4(const char* aName, std::array<float, 4> vec)
 	int location = glGetUniformLocation(myShaderProgram, aName);
 	glUniform4f(location, vec[0], vec[1], vec[2], vec[3]);
 }
+
+void Shader::SetUniformMat4(const char* aName, glm::mat4 matrix)
+{
+	int location = glGetUniformLocation(myShaderProgram, aName);
+	glUniformMatrix4fv(location, 1, GL_FALSE, &matrix[0][0]);
+}
