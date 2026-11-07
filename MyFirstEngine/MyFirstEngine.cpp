@@ -18,6 +18,9 @@ float vertices[] = {
 0.25f, 0.25f, 0.0f
 };
 
+bool ortho = false;
+bool isSpacePressed = false;
+
 GLenum CheckError()
 {
 	GLenum errorCode;
@@ -92,6 +95,12 @@ void DrawHouse(std::array<float, 4> roofColor = { 0.0f, 1.0f, 1.0f, 1.0f })
 	DrawRectangle(windowColor, { 0.15f, -0.25f, 0.0f }, { 0.25f, 0.25f, 1.0f });
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+}
+
 int main()
 {
     GLFWwindow* window;
@@ -153,10 +162,28 @@ int main()
 
 		//myShader->Use();
 
-		//if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		//{
-		//	roofColor = {(float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX, 1.0f};
-		//}
+
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !isSpacePressed)
+		{
+			//roofColor = {(float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX, 1.0f};
+			if(ortho)
+			{
+				ortho = false;
+			}
+			else
+			{
+				ortho = true;
+			}
+			myCubeMesh->SetOrtho(ortho);
+			myPyramidMesh->SetOrtho(ortho);
+			mySphereMesh->SetOrtho(ortho);
+			isSpacePressed = true;
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+		{
+			isSpacePressed = false;
+		}
 
 		//DrawHouse(roofColor);
 		cubeRotation.x += 0.5f;

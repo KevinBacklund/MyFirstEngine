@@ -15,6 +15,7 @@ public:
 	void SetRotation(glm::vec3 rotation) { this->rotation = rotation * glm::pi<float>() / 180.0f; };
 	void SetScale(glm::vec3 scale) { this->scale = scale; }
 	void SetOffset(glm::vec3 offset) { this->offset = offset; }
+	void SetOrtho(bool on);
 
 protected:
 	virtual void SetupVertices();
@@ -27,5 +28,6 @@ protected:
 
 private:
 	unsigned int VAO, VBO, EBO;
+	glm::mat4 projectionMatrix = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f) * glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 };
 
