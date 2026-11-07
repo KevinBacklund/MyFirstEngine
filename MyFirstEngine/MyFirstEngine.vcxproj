@@ -149,12 +149,14 @@
     <ClCompile Include="MyFirstEngine.cpp" />
     <ClCompile Include="PyramidMesh.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="SphereMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CubeMesh.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="PyramidMesh.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="SphereMesh.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FragmentShader.glsl" />

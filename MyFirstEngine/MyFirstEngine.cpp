@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "cubemesh.h"
 #include "pyramidmesh.h"
+#include "spheremesh.h"
 #include "glm.hpp"
 
 #define PI 3.14159265358979323846f
@@ -127,6 +128,9 @@ int main()
 	myPyramidMesh->SetRotation({ 35.0f, 0.0f, 0.0f });
 	glm::vec3 pyramidScale = { 1.0f, 1.0f, 1.0f };
 
+	SphereMesh* mySphereMesh = new SphereMesh({ 0.0f, 0.0f, 1.0f }, 0.5f);
+
+
  //   unsigned int VBO;
  //   glGenBuffers(1, &VBO);
 
@@ -176,7 +180,12 @@ int main()
 		myPyramidMesh->SetScale({ 1.0f, 1.0f, 1.0f });
 		myPyramidMesh->SetOffset({ -2.0f, -0.8f, 0.0f });
 		myPyramidMesh->Draw(myShader);
+		
+		mySphereMesh->SetOffset({ 0.0f, sinf((float)glfwGetTime()) * 0.5f + 0.8f, 0.0f });
+		mySphereMesh->Draw(myShader);
 
+		mySphereMesh->SetOffset({ 0.0f, -0.8f, 0.0f });
+		mySphereMesh->Draw(myShader);
 
         glfwSwapBuffers(window);
 
