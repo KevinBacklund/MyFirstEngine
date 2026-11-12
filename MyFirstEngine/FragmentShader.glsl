@@ -7,6 +7,7 @@ in vec3 vertexPosition;
 in vec2 vertexTexCoord;
 
 uniform vec3 lightDirection;
+uniform sampler2D texture1;
 
 void main()
 {
@@ -15,6 +16,7 @@ void main()
 	float diff = max(dot(normalizedNormal, lightDir), 0.0);
 	vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
 	vec3 ambient = 0.1 * vec3(1.0, 1.0, 1.0); 
-	vec3 resultColor = (ambient + diffuse) * vertexColor.rgb;
-	FragColor = vec4(resultColor, vertexColor.a);
+	vec4 texColor = texture(texture1, vertexTexCoord);
+	vec3 resultColor = (ambient + diffuse) * texColor.rgb;
+	FragColor = vec4(resultColor, texColor.a);
 }

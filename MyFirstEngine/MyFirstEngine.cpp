@@ -156,6 +156,24 @@ int main()
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	CheckError();
 
+	unsigned char pixels[] = {
+		255, 255, 255,   100,   100,   100,  
+		  100,   100,   100, 255, 255, 255   
+	};
+
+	unsigned int tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -169,6 +187,11 @@ int main()
 		myShader->SetUniformVec3("color", { 0.0f, 1.0f, 0.0f });
 		myShader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f)* glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 		myShader->SetUniformVec3("lightDirection", { 0.5f, -0.8f, 0.3f });
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		myShader->SetUniformInt("texture1", 0);
+
 		glBindVertexArray(mesh.VAO);
 		glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
 		glBindVertexArray(0);

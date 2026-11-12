@@ -108,3 +108,9 @@ void Shader::SetUniformMat4(const char* aName, glm::mat4 matrix)
 	int location = glGetUniformLocation(myShaderProgram, aName);
 	glUniformMatrix4fv(location, 1, GL_FALSE, &matrix[0][0]);
 }
+
+void Shader::SetUniformInt(const char* aName, int value)
+{
+	int location = glGetUniformLocation(myShaderProgram, aName);
+	glUniform1i(location, value);
+}

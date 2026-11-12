@@ -51,8 +51,27 @@ ObjectLoader::Mesh ObjectLoader::LoadObject(const std::string& filepath, const s
                 vertices.push_back(1.0f - attrib.texcoords[2 * index.texcoord_index + 1]);
             }
             else {
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
+                float x = attrib.vertices[3 * index.vertex_index + 0];
+                float y = attrib.vertices[3 * index.vertex_index + 1];
+                float z = attrib.vertices[3 * index.vertex_index + 2];
+
+                float nx = (index.normal_index >= 0) ? std::abs(attrib.normals[3 * index.normal_index + 0]) : 0.0f;
+                float ny = (index.normal_index >= 0) ? std::abs(attrib.normals[3 * index.normal_index + 1]) : 1.0f;
+                float nz = (index.normal_index >= 0) ? std::abs(attrib.normals[3 * index.normal_index + 2]) : 0.0f;
+
+                float tileScale = 1.0f;
+                if (nx >= ny && nx >= nz) {
+                    vertices.push_back(z * tileScale);
+                    vertices.push_back(y * tileScale);
+                }
+                else if (ny >= nx && ny >= nz) {
+                    vertices.push_back(x * tileScale);
+                    vertices.push_back(z * tileScale);
+                }
+                else {
+                    vertices.push_back(x * tileScale);
+                    vertices.push_back(y * tileScale);
+                }
             }
         }
     }
@@ -66,6 +85,8 @@ ObjectLoader::Mesh ObjectLoader::LoadObject(const std::string& filepath, const s
     glBindVertexArray(mesh.VAO);
     glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+
 
     GLsizei stride = 8 * sizeof(float);
 

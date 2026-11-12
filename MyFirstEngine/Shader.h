@@ -21,5 +21,6 @@ public:
 	void SetUniformVec3(const char* aName, std::array<float, 3> vec);
 	void SetUniformVec4(const char* aName, std::array<float, 4> vec);
 	void SetUniformMat4(const char* aName, glm::mat4 matrix);
+	void SetUniformInt(const char* aName, int value);
 };
 
