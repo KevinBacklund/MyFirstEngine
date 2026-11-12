@@ -38,10 +38,10 @@ void PyramidMesh::SetupVertices()
 	};
 	indices =
 	{
-		0,2,1, // Front Face
+		0,1,2, // Front Face
 		3,5,4, // Back Face
-		6,8,7, // Right Face
-		9,11,10, // Left Face
-		12,15,13, 15,13,14 // Bottom Face
+		6,7,8, // Right Face
+		9,10,11, // Left Face
+		12,13,15, 15,13,14 // Bottom Face
 	};
 }

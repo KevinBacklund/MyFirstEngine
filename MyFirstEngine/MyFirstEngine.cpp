@@ -7,6 +7,7 @@
 #include "pyramidmesh.h"
 #include "spheremesh.h"
 #include "glm.hpp"
+#include "ObjectLoader.h"
 
 #define PI 3.14159265358979323846f
 
@@ -103,42 +104,40 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main()
 {
-    GLFWwindow* window;
+	GLFWwindow* window;
 
-    if (!glfwInit())
-        return -1;
+	if (!glfwInit())
+		return -1;
 
 	width = 800;
 	height = 600;
 
 	std::array<float, 4> roofColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-    window = glfwCreateWindow(width, height, "My First Engine", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
-    }
+	window = glfwCreateWindow(width, height, "My First Engine", NULL, NULL);
+	if (!window)
+	{
+		glfwTerminate();
+		return -1;
+	}
 
-    glfwMakeContextCurrent(window);
-    gladLoadGL();
+	glfwMakeContextCurrent(window);
+	gladLoadGL();
 
-	glCullFace(GL_BACK);
-
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
 	myShader = new Shader();
 	myShader->Initialize("VertexShader.glsl", "FragmentShader.glsl");
 
-	CubeMesh* myCubeMesh = new CubeMesh({ 0.0f, 1.0f, 0.0f });
-	glm::vec3 cubeRotation = { 0.0f, 0.0f, 0.0f };
+	//CubeMesh* myCubeMesh = new CubeMesh({ 0.0f, 1.0f, 0.0f });
+	//glm::vec3 cubeRotation = { 0.0f, 0.0f, 0.0f };
 
-	PyramidMesh* myPyramidMesh = new PyramidMesh({ 1.0f, 0.0f, 0.0f });
-	myPyramidMesh->SetRotation({ 35.0f, 0.0f, 0.0f });
-	glm::vec3 pyramidScale = { 1.0f, 1.0f, 1.0f };
+	//PyramidMesh* myPyramidMesh = new PyramidMesh({ 1.0f, 0.0f, 0.0f });
+	//myPyramidMesh->SetRotation({ 35.0f, 0.0f, 0.0f });
+	//glm::vec3 pyramidScale = { 1.0f, 1.0f, 1.0f };
 
-	SphereMesh* mySphereMesh = new SphereMesh({ 0.0f, 0.0f, 1.0f }, 0.5f);
-
+	//SphereMesh* mySphereMesh = new SphereMesh({ 0.0f, 0.0f, 1.0f }, 0.5f);
 
  //   unsigned int VBO;
  //   glGenBuffers(1, &VBO);
@@ -154,73 +153,33 @@ int main()
  //   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
  //   glEnableVertexAttribArray(0);
 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	CheckError();
 
-    while (!glfwWindowShouldClose(window))
-    {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	while (!glfwWindowShouldClose(window))
+	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//myShader->Use();
+		myShader->Use();
 
+		ObjectLoader::Mesh mesh = ObjectLoader().LoadObject("../Assets/obj/tree.obj");
+		myShader->SetUniformVec3("offset", { 0.0f, -5.0f, -10.0f });
+		myShader->SetUniformVec3("scale", { 1.0f, 1.0f, 1.0f });
+		myShader->SetUniformVec3("rotation", { 0.0f, 0.0f, 0.0f });
+		myShader->SetUniformVec3("color", { 0.0f, 1.0f, 0.0f });
+		myShader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f)* glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+		myShader->SetUniformVec3("lightDirection", { 0.5f, -0.8f, 0.3f });
+		glBindVertexArray(mesh.VAO);
+		glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
+		glBindVertexArray(0);
 
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !isSpacePressed)
-		{
-			//roofColor = {(float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX, 1.0f};
-			if(ortho)
-			{
-				ortho = false;
-			}
-			else
-			{
-				ortho = true;
-			}
-			myCubeMesh->SetOrtho(ortho);
-			myPyramidMesh->SetOrtho(ortho);
-			mySphereMesh->SetOrtho(ortho);
-			isSpacePressed = true;
-		}
+		glfwSwapBuffers(window);
 
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
-		{
-			isSpacePressed = false;
-		}
-
-		//DrawHouse(roofColor);
-		cubeRotation.x += 0.5f;
-		cubeRotation.y += 0.2f;
-		cubeRotation.z += 0.1f;
-		myCubeMesh->SetRotation(cubeRotation);
-		myCubeMesh->SetOffset({ 1.5f, 0.8f, 0.0f });
-
-		myCubeMesh->Draw(myShader);
-
-		myCubeMesh->SetRotation({ 0.0f, 0.0f, 0.0f });
-		myCubeMesh->SetOffset({ 1.5f, -0.8f, 0.0f });
-		
-		myCubeMesh->Draw(myShader);
-
-		myPyramidMesh->SetOffset({ -2.0f, 0.8f, 0.0f });
-		pyramidScale = { 1.0f + 0.5f * sinf((float)glfwGetTime()), 1.0f + 0.5f * sinf((float)glfwGetTime()), 1.0f + 0.5f * sinf((float)glfwGetTime()) };
-		myPyramidMesh->SetScale(pyramidScale);
-		myPyramidMesh->Draw(myShader);
-
-		myPyramidMesh->SetScale({ 1.0f, 1.0f, 1.0f });
-		myPyramidMesh->SetOffset({ -2.0f, -0.8f, 0.0f });
-		myPyramidMesh->Draw(myShader);
-		
-		mySphereMesh->SetOffset({ 0.0f, sinf((float)glfwGetTime()) * 0.5f + 0.8f, 0.0f });
-		mySphereMesh->Draw(myShader);
-
-		mySphereMesh->SetOffset({ 0.0f, -0.8f, 0.0f });
-		mySphereMesh->Draw(myShader);
-
-        glfwSwapBuffers(window);
-
-        glfwPollEvents();
+		glfwPollEvents();
 
 		CheckError();
-    }
+	}
 
-    glfwTerminate();
-    return 0;
+	glfwTerminate();
+	return 0;	
 }
