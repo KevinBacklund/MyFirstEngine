@@ -96,10 +96,30 @@ void DrawHouse(std::array<float, 4> roofColor = { 0.0f, 1.0f, 1.0f, 1.0f })
 	DrawRectangle(windowColor, { 0.15f, -0.25f, 0.0f }, { 0.25f, 0.25f, 1.0f });
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+unsigned int CreateSolidColorTexture(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	unsigned char pixelData[4] = { r, g, b, a };
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glBindTexture(GL_TEXTURE_2D, 0); 
+	return textureID;
+}
+
+void DrawMesh(const ObjectLoader::Mesh& mesh)
+{
+	glBindVertexArray(mesh.VAO);
+	glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
+	glBindVertexArray(0);
 }
 
 int main()
@@ -130,40 +150,20 @@ int main()
 	myShader = new Shader();
 	myShader->Initialize("VertexShader.glsl", "FragmentShader.glsl");
 
-	//CubeMesh* myCubeMesh = new CubeMesh({ 0.0f, 1.0f, 0.0f });
-	//glm::vec3 cubeRotation = { 0.0f, 0.0f, 0.0f };
-
-	//PyramidMesh* myPyramidMesh = new PyramidMesh({ 1.0f, 0.0f, 0.0f });
-	//myPyramidMesh->SetRotation({ 35.0f, 0.0f, 0.0f });
-	//glm::vec3 pyramidScale = { 1.0f, 1.0f, 1.0f };
-
-	//SphereMesh* mySphereMesh = new SphereMesh({ 0.0f, 0.0f, 1.0f }, 0.5f);
-
- //   unsigned int VBO;
- //   glGenBuffers(1, &VBO);
-
-	//unsigned int VAO;
-	//glGenVertexArrays(1, &VAO);
-	//
- //   glBindVertexArray(VAO);
- //   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
- //   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
- //   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
- //   glEnableVertexAttribArray(0);
-
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	CheckError();
 
-	unsigned char pixels[] = {
+
+
+
+	unsigned char checkPixels[] = {
 		255, 255, 255,   100,   100,   100,  
 		  100,   100,   100, 255, 255, 255   
 	};
 
-	unsigned int tex;
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
+	unsigned int checkTex;
+	glGenTextures(1, &checkTex);
+	glBindTexture(GL_TEXTURE_2D, checkTex);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -171,8 +171,15 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, checkPixels);
 
+	unsigned int solidColorTex = CreateSolidColorTexture(255, 0, 0);
+
+	ObjectLoader::Mesh treeMesh = ObjectLoader().LoadObject("../Assets/obj/tree.obj");
+	ObjectLoader::Mesh palletMesh = ObjectLoader().LoadObject("../Assets/obj/Wooden_Pallet.obj");
+	ObjectLoader::Mesh scrollMesh = ObjectLoader().LoadObject("../Assets/obj/Scroll.obj");
+	ObjectLoader::Mesh reedMesh = ObjectLoader().LoadObject("../Assets/obj/reed.obj");
+	ObjectLoader::Mesh anvilMesh = ObjectLoader().LoadObject("../Assets/obj/Anvil.obj");
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -180,21 +187,43 @@ int main()
 
 		myShader->Use();
 
-		ObjectLoader::Mesh mesh = ObjectLoader().LoadObject("../Assets/obj/tree.obj");
-		myShader->SetUniformVec3("offset", { 0.0f, -5.0f, -10.0f });
+		myShader->SetUniformVec3("offset", { 5.0f, -5.0f, -10.0f });
 		myShader->SetUniformVec3("scale", { 1.0f, 1.0f, 1.0f });
 		myShader->SetUniformVec3("rotation", { 0.0f, 0.0f, 0.0f });
 		myShader->SetUniformVec3("color", { 0.0f, 1.0f, 0.0f });
-		myShader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f)* glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-		myShader->SetUniformVec3("lightDirection", { 0.5f, -0.8f, 0.3f });
+		myShader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f)* glm::lookAt(glm::vec3(0.0f, 1.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+		myShader->SetUniformVec3("lightDirection", { 0.0f, -1.0f, -1.0f });
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex);
+		glBindTexture(GL_TEXTURE_2D, checkTex);
 		myShader->SetUniformInt("texture1", 0);
 
-		glBindVertexArray(mesh.VAO);
-		glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
-		glBindVertexArray(0);
+		DrawMesh(treeMesh);
+
+		glBindTexture(GL_TEXTURE_2D, solidColorTex);
+		myShader->SetUniformInt("texture1", 0);
+		myShader->SetUniformVec3("offset", { 0.0f, -5.0f, -5.0f });
+		myShader->SetUniformVec3("scale", { 3.0f, 3.0f, 3.0f });
+		myShader->SetUniformVec3("rotation", { 0.0f, glm::radians(90.0f), glm::radians(0.0f) });
+
+		DrawMesh(palletMesh);
+		
+		glBindTexture(GL_TEXTURE_2D, solidColorTex);
+		myShader->SetUniformInt("texture1", 0);
+		myShader->SetUniformVec3("offset", { -4.0f, -5.0f, -5.0f });
+		myShader->SetUniformVec3("scale", { 3.0f, 3.0f, 3.0f });
+		myShader->SetUniformVec3("rotation", { glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f) });
+
+		DrawMesh(scrollMesh);
+
+		myShader->SetUniformVec3("offset", { 0.0f, -5.0f, -15.0f });
+
+		DrawMesh(reedMesh);
+
+		myShader->SetUniformVec3("offset", { 4.0f, -5.0f, -5.0f });
+
+
+		DrawMesh(anvilMesh);
 
 		glfwSwapBuffers(window);
 

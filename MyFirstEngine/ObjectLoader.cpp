@@ -41,36 +41,66 @@ ObjectLoader::Mesh ObjectLoader::LoadObject(const std::string& filepath, const s
                 vertices.push_back(attrib.normals[3 * index.normal_index + 2]);
             }
             else {
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
-                vertices.push_back(0.0f);
+                size_t currIdx = &index - shape.mesh.indices.data();
+                size_t triStart = (currIdx / 3) * 3;
+
+                int i0 = shape.mesh.indices[triStart + 0].vertex_index;
+                int i1 = shape.mesh.indices[triStart + 1].vertex_index;
+                int i2 = shape.mesh.indices[triStart + 2].vertex_index;
+
+                float edge1x = attrib.vertices[3 * i1 + 0] - attrib.vertices[3 * i0 + 0];
+                float edge1y = attrib.vertices[3 * i1 + 1] - attrib.vertices[3 * i0 + 1];
+                float edge1z = attrib.vertices[3 * i1 + 2] - attrib.vertices[3 * i0 + 2];
+
+                float edge2x = attrib.vertices[3 * i2 + 0] - attrib.vertices[3 * i0 + 0];
+                float edge2y = attrib.vertices[3 * i2 + 1] - attrib.vertices[3 * i0 + 1];
+                float edge2z = attrib.vertices[3 * i2 + 2] - attrib.vertices[3 * i0 + 2];
+
+                float fnx = edge1y * edge2z - edge1z * edge2y;
+                float fny = edge1z * edge2x - edge1x * edge2z;
+                float fnz = edge1x * edge2y - edge1y * edge2x;
+
+                float len = std::sqrt(fnx * fnx + fny * fny + fnz * fnz);
+                if (len > 0.0f) {
+                    fnx /= len;
+                    fny /= len;
+                    fnz /= len;
+                }
+
+                vertices.push_back(fnx);
+                vertices.push_back(fny);
+                vertices.push_back(fnz);
             }
 
             if (index.texcoord_index >= 0) {
                 vertices.push_back(attrib.texcoords[2 * index.texcoord_index + 0]);
                 vertices.push_back(1.0f - attrib.texcoords[2 * index.texcoord_index + 1]);
             }
-            else {
-                float x = attrib.vertices[3 * index.vertex_index + 0];
-                float y = attrib.vertices[3 * index.vertex_index + 1];
-                float z = attrib.vertices[3 * index.vertex_index + 2];
+            else 
+            {
+                float vx = attrib.vertices[3 * index.vertex_index + 0];
+                float vy = attrib.vertices[3 * index.vertex_index + 1];
+                float vz = attrib.vertices[3 * index.vertex_index + 2];
 
-                float nx = (index.normal_index >= 0) ? std::abs(attrib.normals[3 * index.normal_index + 0]) : 0.0f;
-                float ny = (index.normal_index >= 0) ? std::abs(attrib.normals[3 * index.normal_index + 1]) : 1.0f;
-                float nz = (index.normal_index >= 0) ? std::abs(attrib.normals[3 * index.normal_index + 2]) : 0.0f;
+                float nx = (index.normal_index >= 0) ? attrib.normals[3 * index.normal_index + 0] : 0.0f;
+                float ny = (index.normal_index >= 0) ? attrib.normals[3 * index.normal_index + 1] : 0.0f;
+                float nz = (index.normal_index >= 0) ? attrib.normals[3 * index.normal_index + 2] : 1.0f;
 
-                float tileScale = 1.0f;
-                if (nx >= ny && nx >= nz) {
-                    vertices.push_back(z * tileScale);
-                    vertices.push_back(y * tileScale);
+                float absX = std::abs(nx);
+                float absY = std::abs(ny);
+                float absZ = std::abs(nz);
+
+                if (absX >= absY && absX >= absZ) {
+                    vertices.push_back(vz);
+                    vertices.push_back(vy);
                 }
-                else if (ny >= nx && ny >= nz) {
-                    vertices.push_back(x * tileScale);
-                    vertices.push_back(z * tileScale);
+                else if (absY >= absX && absY >= absZ) {
+                    vertices.push_back(vx);
+                    vertices.push_back(vz);
                 }
                 else {
-                    vertices.push_back(x * tileScale);
-                    vertices.push_back(y * tileScale);
+                    vertices.push_back(vx);
+                    vertices.push_back(vy);
                 }
             }
         }
