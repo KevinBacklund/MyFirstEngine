@@ -24,20 +24,20 @@ void Mesh::SetupMesh()
 	glEnableVertexAttribArray(0);
 }
 
-void Mesh::Draw(Shader* shader)
-{
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-	shader->Use();
-	shader->SetUniformVec3("color", { color.x, color.y, color.z });
-	shader->SetUniformVec3("offset", { offset.x, offset.y, offset.z });
-	shader->SetUniformVec3("scale", { scale.x, scale.y, scale.z });
-	shader->SetUniformVec3("rotation", { rotation.x, rotation.y, rotation.z });
-	shader->SetUniformMat4("projection", projectionMatrix);
-
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-}
+//void Mesh::Draw(Shader* shader)
+//{
+//	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+//
+//	shader->Use();
+//	shader->SetUniformVec3("color", { color.x, color.y, color.z });
+//	shader->SetUniformVec3("offset", { offset.x, offset.y, offset.z });
+//	shader->SetUniformVec3("scale", { scale.x, scale.y, scale.z });
+//	shader->SetUniformVec3("rotation", { rotation.x, rotation.y, rotation.z });
+//	shader->SetUniformMat4("projection", projectionMatrix);
+//
+//	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+//}
 
 void Mesh::SetOrtho(bool on)
 {

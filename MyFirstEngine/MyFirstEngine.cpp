@@ -58,44 +58,6 @@ float CosDegrees(float degrees)
 	return cosf(DegreesToRadians(degrees));
 }
 
-void DrawTriangle(std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f }, std::array<float, 3> offset = {0.0f, 0.0f, 0.0f}, std::array<float, 3> scale = {1.0f, 1.0f, 1.0f})
-{
-	myShader->SetUniformVec3("offset", offset);
-	myShader->SetUniformVec3("scale", scale);
-	myShader->SetUniformVec4("color", color);
-    myShader->SetUniformVec3("rotation", { SinDegrees(0.0f), CosDegrees(0.0f), 1.0f });
-
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-void DrawRectangle(std::array<float, 4> color = { 1.0f, 1.0f, 1.0f, 1.0f }, std::array<float, 3> offset = {0.0f, 0.0f, 0.0f}, std::array<float, 3> scale = {1.0f, 1.0f, 1.0f})
-{
-	myShader->SetUniformVec3("offset", offset);
-	myShader->SetUniformVec3("scale", scale);
-	myShader->SetUniformVec4("color", color);
-	myShader->SetUniformVec3("rotation", { SinDegrees(0.0f), CosDegrees(0.0f), 1.0f });
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	myShader->SetUniformVec3("rotation", { SinDegrees(180.0f), CosDegrees(180.0f), 1.0f });
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-void DrawHouse(std::array<float, 4> roofColor = { 0.0f, 1.0f, 1.0f, 1.0f })
-{
-	std::array<float, 4> houseColor = { 1.0f, 0.0f, 0.0f, 1.0f };
-	std::array<float, 4> doorColor = { 0.5f, 0.25f, 0.0f, 1.0f };
-	std::array<float, 4> windowColor = { 0.0f, 0.0f, 1.0f, 1.0f };
-    
-	std::array<float, 3> houseOffset = { 0.0f, -0.25f, 0.0f };
-
-	DrawRectangle(houseColor, houseOffset, { 1.0f, 1.0f, 1.0f });
-	DrawTriangle(roofColor, { 0.0f, 0.125f, 0.0f }, { 1.2f, 0.5f, 1.0f });
-
-	DrawRectangle(doorColor, { 0.0f, -0.375f, 0.0f }, { 0.25f, 0.5f, 1.0f });
-	DrawRectangle(windowColor, { -0.15f, -0.25f, 0.0f }, { 0.25f, 0.25f, 1.0f });
-	DrawRectangle(windowColor, { 0.15f, -0.25f, 0.0f }, { 0.25f, 0.25f, 1.0f });
-}
-
 unsigned int CreateSolidColorTexture(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255)
 {
 	unsigned int textureID;
@@ -115,11 +77,16 @@ unsigned int CreateSolidColorTexture(unsigned char r, unsigned char g, unsigned 
 	return textureID;
 }
 
-void DrawMesh(const ObjectLoader::Mesh& mesh)
+void renderObj(const ObjectLoader::Mesh& mesh, unsigned int textureID, Shader* shader, glm::vec3 position, glm::vec3 scale, glm::vec3 rotation)
 {
+	shader->SetUniformVec3("offset", position);
+	shader->SetUniformVec3("scale", scale);
+	shader->SetUniformVec3("rotation", rotation);
+	glBindTexture(GL_TEXTURE_2D, textureID);
 	glBindVertexArray(mesh.VAO);
 	glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
 	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 int main()
@@ -175,11 +142,17 @@ int main()
 
 	unsigned int solidColorTex = CreateSolidColorTexture(255, 0, 0);
 
-	ObjectLoader::Mesh treeMesh = ObjectLoader().LoadObject("../Assets/obj/tree.obj");
-	ObjectLoader::Mesh palletMesh = ObjectLoader().LoadObject("../Assets/obj/Wooden_Pallet.obj");
-	ObjectLoader::Mesh scrollMesh = ObjectLoader().LoadObject("../Assets/obj/Scroll.obj");
-	ObjectLoader::Mesh reedMesh = ObjectLoader().LoadObject("../Assets/obj/reed.obj");
-	ObjectLoader::Mesh anvilMesh = ObjectLoader().LoadObject("../Assets/obj/Anvil.obj");
+	//ObjectLoader::Mesh treeMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/tree.obj");
+	//ObjectLoader::Mesh palletMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/Wooden_Pallet.obj");
+	//ObjectLoader::Mesh scrollMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/Scroll.obj");
+	//ObjectLoader::Mesh reedMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/reed.obj");
+	//ObjectLoader::Mesh anvilMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/Anvil.obj");
+
+	ObjectLoader::Mesh treeMesh = ObjectLoader().MyLoadObject("../Assets/obj/tree.obj");
+	ObjectLoader::Mesh palletMesh = ObjectLoader().MyLoadObject("../Assets/obj/Wooden_Pallet.obj");
+	ObjectLoader::Mesh scrollMesh = ObjectLoader().MyLoadObject("../Assets/obj/Scroll.obj");
+	ObjectLoader::Mesh reedMesh = ObjectLoader().MyLoadObject("../Assets/obj/reed.obj");
+	ObjectLoader::Mesh anvilMesh = ObjectLoader().MyLoadObject("../Assets/obj/Anvil.obj");
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -187,43 +160,20 @@ int main()
 
 		myShader->Use();
 
-		myShader->SetUniformVec3("offset", { 5.0f, -5.0f, -10.0f });
-		myShader->SetUniformVec3("scale", { 1.0f, 1.0f, 1.0f });
-		myShader->SetUniformVec3("rotation", { 0.0f, 0.0f, 0.0f });
-		myShader->SetUniformVec3("color", { 0.0f, 1.0f, 0.0f });
 		myShader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f)* glm::lookAt(glm::vec3(0.0f, 1.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-		myShader->SetUniformVec3("lightDirection", { 0.0f, -1.0f, -1.0f });
+		myShader->SetUniformVec3("lightDirection", glm::vec3(0.0f, -1.0f, -1.0f));
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, checkTex);
-		myShader->SetUniformInt("texture1", 0);
 
-		DrawMesh(treeMesh);
+		renderObj(treeMesh, checkTex, myShader, glm::vec3(0.0f, -5.0f, -10.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-		glBindTexture(GL_TEXTURE_2D, solidColorTex);
-		myShader->SetUniformInt("texture1", 0);
-		myShader->SetUniformVec3("offset", { 0.0f, -5.0f, -5.0f });
-		myShader->SetUniformVec3("scale", { 3.0f, 3.0f, 3.0f });
-		myShader->SetUniformVec3("rotation", { 0.0f, glm::radians(90.0f), glm::radians(0.0f) });
+		renderObj(palletMesh, solidColorTex, myShader, glm::vec3(4.0f, -5.0f, -6.0f), glm::vec3(3.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-		DrawMesh(palletMesh);
-		
-		glBindTexture(GL_TEXTURE_2D, solidColorTex);
-		myShader->SetUniformInt("texture1", 0);
-		myShader->SetUniformVec3("offset", { -4.0f, -5.0f, -5.0f });
-		myShader->SetUniformVec3("scale", { 3.0f, 3.0f, 3.0f });
-		myShader->SetUniformVec3("rotation", { glm::radians(0.0f), glm::radians(0.0f), glm::radians(0.0f) });
+		renderObj(scrollMesh, checkTex, myShader,glm::vec3(-4.0f, 0.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-		DrawMesh(scrollMesh);
+		renderObj(reedMesh, solidColorTex, myShader, glm::vec3(0.0f, -5.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-		myShader->SetUniformVec3("offset", { 0.0f, -5.0f, -15.0f });
-
-		DrawMesh(reedMesh);
-
-		myShader->SetUniformVec3("offset", { 4.0f, -5.0f, -5.0f });
-
-
-		DrawMesh(anvilMesh);
+		renderObj(anvilMesh, checkTex, myShader, glm::vec3(1.4f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 		glfwSwapBuffers(window);
 

@@ -97,10 +97,22 @@ void Shader::SetUniformVec3(const char* aName, std::array<float, 3> vec)
 	glUniform3f(location, vec[0], vec[1], vec[2]);
 }
 
+void Shader::SetUniformVec3(const char* aName, glm::vec3 vec)
+{
+	int location = glGetUniformLocation(myShaderProgram, aName);
+	glUniform3f(location, vec.x, vec.y, vec.z);
+}
+
 void Shader::SetUniformVec4(const char* aName, std::array<float, 4> vec)
 {
 	int location = glGetUniformLocation(myShaderProgram, aName);
 	glUniform4f(location, vec[0], vec[1], vec[2], vec[3]);
+}
+
+void Shader::SetUniformVec4(const char* aName, glm::vec4 vec)
+{
+	int location = glGetUniformLocation(myShaderProgram, aName);
+	glUniform4f(location, vec.x, vec.y, vec.z, vec.w);
 }
 
 void Shader::SetUniformMat4(const char* aName, glm::mat4 matrix)
