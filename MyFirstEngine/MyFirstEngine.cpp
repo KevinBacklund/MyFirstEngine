@@ -8,6 +8,7 @@
 #include "spheremesh.h"
 #include "glm.hpp"
 #include "ObjectLoader.h"
+#include <unordered_map>
 
 #define PI 3.14159265358979323846f
 
@@ -21,6 +22,20 @@ float vertices[] = {
 
 bool ortho = false;
 bool isSpacePressed = false;
+
+std::unordered_map<std::string, ObjectLoader::Mesh> loadedMeshes;
+
+struct Object
+{
+	std::string meshName;
+	unsigned int textureID;
+	glm::vec3 position;
+	glm::vec3 scale;
+	glm::vec3 rotation;
+};
+
+std::unordered_map < std::string, Object> sceneObjects;
+
 
 GLenum CheckError()
 {
@@ -77,14 +92,14 @@ unsigned int CreateSolidColorTexture(unsigned char r, unsigned char g, unsigned 
 	return textureID;
 }
 
-void renderObj(const ObjectLoader::Mesh& mesh, unsigned int textureID, Shader* shader, glm::vec3 position, glm::vec3 scale, glm::vec3 rotation)
+void renderObj(const Object& obj, Shader* shader)
 {
-	shader->SetUniformVec3("offset", position);
-	shader->SetUniformVec3("scale", scale);
-	shader->SetUniformVec3("rotation", rotation);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glBindVertexArray(mesh.VAO);
-	glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
+	shader->SetUniformVec3("offset", obj.position);
+	shader->SetUniformVec3("scale", obj.scale);
+	shader->SetUniformVec3("rotation", obj.rotation);
+	glBindTexture(GL_TEXTURE_2D, obj.textureID);
+	glBindVertexArray(loadedMeshes[obj.meshName].VAO);
+	glDrawArrays(GL_TRIANGLES, 0, loadedMeshes[obj.meshName].vertexCount);
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -142,17 +157,13 @@ int main()
 
 	unsigned int solidColorTex = CreateSolidColorTexture(255, 0, 0);
 
-	//ObjectLoader::Mesh treeMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/tree.obj");
-	//ObjectLoader::Mesh palletMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/Wooden_Pallet.obj");
-	//ObjectLoader::Mesh scrollMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/Scroll.obj");
-	//ObjectLoader::Mesh reedMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/reed.obj");
-	//ObjectLoader::Mesh anvilMesh = ObjectLoader().LoadObjectTiny("../Assets/obj/Anvil.obj");
+	loadedMeshes = ObjectLoader().LoadObjects("../Assets/obj/", "MyObjectLoader");
 
-	ObjectLoader::Mesh treeMesh = ObjectLoader().MyLoadObject("../Assets/obj/tree.obj");
-	ObjectLoader::Mesh palletMesh = ObjectLoader().MyLoadObject("../Assets/obj/Wooden_Pallet.obj");
-	ObjectLoader::Mesh scrollMesh = ObjectLoader().MyLoadObject("../Assets/obj/Scroll.obj");
-	ObjectLoader::Mesh reedMesh = ObjectLoader().MyLoadObject("../Assets/obj/reed.obj");
-	ObjectLoader::Mesh anvilMesh = ObjectLoader().MyLoadObject("../Assets/obj/Anvil.obj");
+	sceneObjects["tree"] = { "tree", checkTex, glm::vec3(0.0f, -5.0f, -10.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
+	sceneObjects["pallet"] = { "Wooden_Pallet", solidColorTex, glm::vec3(4.0f, -5.0f, -6.0f), glm::vec3(3.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
+	sceneObjects["scroll"] = { "Scroll", checkTex, glm::vec3(-4.0f, 0.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
+	sceneObjects["reed"] = { "reed", solidColorTex, glm::vec3(0.0f, -5.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
+	sceneObjects["anvil"] = { "Anvil", checkTex, glm::vec3(1.4f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -165,15 +176,21 @@ int main()
 
 		glActiveTexture(GL_TEXTURE0);
 
-		renderObj(treeMesh, checkTex, myShader, glm::vec3(0.0f, -5.0f, -10.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		renderObj(sceneObjects["tree"], myShader);
+		renderObj(sceneObjects["pallet"], myShader);
+		renderObj(sceneObjects["scroll"], myShader);
+		renderObj(sceneObjects["reed"], myShader);
+		renderObj(sceneObjects["anvil"], myShader);
 
-		renderObj(palletMesh, solidColorTex, myShader, glm::vec3(4.0f, -5.0f, -6.0f), glm::vec3(3.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		//renderObj(treeMesh, checkTex, myShader, glm::vec3(0.0f, -5.0f, -10.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-		renderObj(scrollMesh, checkTex, myShader,glm::vec3(-4.0f, 0.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		//renderObj(palletMesh, solidColorTex, myShader, glm::vec3(4.0f, -5.0f, -6.0f), glm::vec3(3.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-		renderObj(reedMesh, solidColorTex, myShader, glm::vec3(0.0f, -5.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		//renderObj(scrollMesh, checkTex, myShader,glm::vec3(-4.0f, 0.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
-		renderObj(anvilMesh, checkTex, myShader, glm::vec3(1.4f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		//renderObj(reedMesh, solidColorTex, myShader, glm::vec3(0.0f, -5.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+
+		//renderObj(anvilMesh, checkTex, myShader, glm::vec3(1.4f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
 		glfwSwapBuffers(window);
 

@@ -6,10 +6,46 @@
 #include "tiny_obj_loader.h"
 
 
+std::unordered_map<std::string, ObjectLoader::Mesh> ObjectLoader::LoadObjects(const std::string& folderPath, const std::string& objectLoader, const std::string& mtlBasePath)
+{
+    std::unordered_map<std::string, Mesh> loadedMeshes;
+    if (objectLoader == "TinyObjLoader")
+    {
+        for (const auto& entry : std::filesystem::directory_iterator(folderPath))
+        {
+            if (entry.path().extension() == ".obj")
+            {
+                Mesh mesh = LoadObjectTiny(entry.path().string(), mtlBasePath);
+                loadedMeshes[mesh.name] = mesh;
+				std::cout << "Loaded mesh: " << mesh.name << std::endl;
+            }
+        }
+    }
+    else if (objectLoader == "MyObjectLoader")
+    {
+        for (const auto& entry : std::filesystem::directory_iterator(folderPath))
+        {
+            if (entry.path().extension() == ".obj")
+            {
+                Mesh mesh = MyLoadObject(entry.path().string());
+                loadedMeshes[mesh.name] = mesh;
+                std::cout << "Loaded mesh: " << mesh.name << std::endl;
+            }
+        }
+    }
+    else
+    {
+        throw std::invalid_argument("Unknown object loader: " + objectLoader);
+    }
+    return loadedMeshes;
+};
+
 ObjectLoader::Mesh ObjectLoader::MyLoadObject(const std::string& filepath)
 {
     Mesh mesh{};
     std::ifstream file(filepath);
+	std::filesystem::path pathObj(filepath);
+	mesh.name = pathObj.stem().string();
     if (!file.is_open())
     {
         std::cerr << "Failed to open OBJ file: " << filepath << "\n";
@@ -26,6 +62,7 @@ ObjectLoader::Mesh ObjectLoader::MyLoadObject(const std::string& filepath)
 
     while (std::getline(file, line))
     {
+
         if (line.empty() || line[0] == '#')
         {
             continue;
