@@ -6,6 +6,7 @@ InputSystem::InputSystem()
 	BindAction(Actions::MoveBack, GLFW_KEY_S);
 	BindAction(Actions::MoveLeft, GLFW_KEY_A);
 	BindAction(Actions::MoveRight, GLFW_KEY_D);
+	BindAction(Actions::ToggleSplitScreen, GLFW_KEY_M);
 }
 
 void InputSystem::BindAction(Actions action, int glfwKey)

@@ -14,6 +14,7 @@ public:
 		MoveBack,
 		MoveRight,
 		MoveLeft,
+		ToggleSplitScreen,
 		Count
 	};
 	

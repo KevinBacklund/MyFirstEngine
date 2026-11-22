@@ -13,17 +13,12 @@
 #define PI 3.14159265358979323846f
 
 int width, height;
+float aspectRatio;
 Shader* myShader;
-Camera* myCamera;
-InputSystem* myInputSystem;
-float vertices[] = {
--0.25f, -0.25f, 0.0f,
-0.25f, -0.25f, 0.0f,
-0.25f, 0.25f, 0.0f
-};
 
 bool ortho = false;
-bool isSpacePressed = false;
+bool isSplitScreen = false;
+int activePlayerCount = 1;
 
 std::unordered_map<std::string, ObjectLoader::Mesh> loadedMeshes;
 
@@ -38,6 +33,13 @@ struct Object
 
 std::unordered_map < std::string, Object> sceneObjects;
 
+struct Player
+{
+	Camera* playerCamera;
+	InputSystem* playerInput;
+};
+
+std::array<Player*, 2> players;
 
 GLenum CheckError()
 {
@@ -91,10 +93,10 @@ void renderObj(const Object& obj, Shader* shader)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void renderScene(const std::unordered_map<std::string, Object>& sceneObjects, Shader* shader)
+void renderScene(const std::unordered_map<std::string, Object>& sceneObjects, Shader* shader, Player* player)
 {
-	shader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f));
-	shader->SetUniformMat4("view", myCamera->getViewMatrix());
+	shader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f));
+	shader->SetUniformMat4("view", player->playerCamera->getViewMatrix());
 	shader->SetUniformVec3("lightDirection", glm::vec3(0.0f, -1.0f, -1.0f));
 
 	for (const auto& pair : sceneObjects)
@@ -104,25 +106,25 @@ void renderScene(const std::unordered_map<std::string, Object>& sceneObjects, Sh
 	}
 }
 
-void cameraMovement(Camera* camera, InputSystem* input)
+void cameraMovement(Player* player)
 {
 	float moveSpeed = 0.1f;
 
-	glm::vec3 flatForward = { camera->getFront().x, 0.0f, camera->getFront().z };
+	glm::vec3 flatForward = { player->playerCamera->getFront().x, 0.0f, player->playerCamera->getFront().z };
 
 	glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
 	glm::vec3 flatRight = glm::normalize(glm::cross(flatForward, worldUp));
 
 	glm::vec3 moveDirection(0.0f);
 
-	if (input->IsActionHeld(InputSystem::MoveForward)) moveDirection += flatForward;
-	if (input->IsActionHeld(InputSystem::MoveBack))    moveDirection -= flatForward;
-	if (input->IsActionHeld(InputSystem::MoveRight))   moveDirection += flatRight;
-	if (input->IsActionHeld(InputSystem::MoveLeft))    moveDirection -= flatRight;
+	if (player->playerInput->IsActionHeld(InputSystem::MoveForward)) moveDirection += flatForward;
+	if (player->playerInput->IsActionHeld(InputSystem::MoveBack))    moveDirection -= flatForward;
+	if (player->playerInput->IsActionHeld(InputSystem::MoveRight))   moveDirection += flatRight;
+	if (player->playerInput->IsActionHeld(InputSystem::MoveLeft))    moveDirection -= flatRight;
 
-	camera->moveCamera(moveDirection * moveSpeed);
+	player->playerCamera->moveCamera(moveDirection * moveSpeed);
 
-	camera->moveLookDirection(input->GetMouseDelta());
+	//player->playerCamera->moveLookDirection(player->playerInput->GetMouseDelta());
 }
 
 int main()
@@ -134,6 +136,7 @@ int main()
 
 	width = 800;
 	height = 600;
+	aspectRatio = width / height;
 
 	std::array<float, 4> roofColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -153,8 +156,19 @@ int main()
 	myShader = new Shader();
 	myShader->Initialize("VertexShader.glsl", "FragmentShader.glsl");
 
-	myCamera = new Camera();
-	myInputSystem = new InputSystem;
+	players[0] = new Player;
+	players[0]->playerCamera = new Camera;
+	players[0]->playerInput = new InputSystem;
+
+	players[1] = new Player;
+	players[1]->playerCamera = new Camera;
+	players[1]->playerInput = new InputSystem;
+
+	players[1]->playerInput->BindAction(InputSystem::MoveForward, GLFW_KEY_I);
+	players[1]->playerInput->BindAction(InputSystem::MoveBack, GLFW_KEY_K);
+	players[1]->playerInput->BindAction(InputSystem::MoveLeft, GLFW_KEY_J);
+	players[1]->playerInput->BindAction(InputSystem::MoveRight, GLFW_KEY_L);
+
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	CheckError();
@@ -195,13 +209,24 @@ int main()
 
 		myShader->Use();
 
-		glActiveTexture(GL_TEXTURE0);
+		float viewPortWidth = width / activePlayerCount;
+		aspectRatio = viewPortWidth / height;
 
-		myInputSystem->ProccesInput(window);
+		for (int i = 0; i < activePlayerCount; i++)
+		{
+			glViewport(i * viewPortWidth, 0, viewPortWidth, height);
+			players[i]->playerInput->ProccesInput(window);
 
-		cameraMovement(myCamera, myInputSystem);
+			cameraMovement(players[i]);
+			if (players[i]->playerInput->IsActionPressed(InputSystem::Actions::ToggleSplitScreen))
+			{
+				isSplitScreen = !isSplitScreen;
+				activePlayerCount = isSplitScreen ? 2 : 1;
+			}
 
-		renderScene(sceneObjects, myShader);
+
+			renderScene(sceneObjects, myShader, players[i]);
+		}
 
 		glfwSwapBuffers(window);
 
