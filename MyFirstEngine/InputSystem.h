@@ -15,6 +15,7 @@ public:
 		MoveRight,
 		MoveLeft,
 		ToggleSplitScreen,
+		SwapScene,
 		Count
 	};
 	

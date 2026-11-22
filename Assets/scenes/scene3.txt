@@ -1,0 +1,36 @@
+sceneName SceneThree
+
+sceneObject  
+model Wooden_Pallet 
+position 0.0 -5.0 -10.0
+scale 3.0 3.0 3.0 
+rotation 0.0 0.0 0.0
+
+sceneObject  
+model Wooden_Pallet 
+position 4.0 -5.0 -6.0 
+scale 3.0 3.0 3.0 
+rotation 0.0 0.0 0.0 
+
+sceneObject 
+model Scroll 
+position -4.0 0.0 -5.0 
+scale 1.0 1.0 1.0 
+rotation 0.0 0.0 0.0 
+
+sceneObject 
+model Wooden_Pallet 
+position 0.0 -5.0 -5.0
+scale 3.0 3.0 3.0 
+rotation 0.0 0.0 0.0 
+
+sceneObject 
+model Anvil 
+position 4.0 -4.5 -6.0
+scale 2.0 2.0 2.0 
+rotation 0.0 0.0 0.0 
+
+playerStart 0.0 0.0 4.0
+playerStart 0.0 0.0 -3.0
+
+goal 0.0 0.0 0.0

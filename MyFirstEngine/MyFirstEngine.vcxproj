@@ -151,6 +151,7 @@
     <ClCompile Include="MyFirstEngine.cpp" />
     <ClCompile Include="ObjectLoader.cpp" />
     <ClCompile Include="PyramidMesh.cpp" />
+    <ClCompile Include="SceneLoader.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SphereMesh.cpp" />
   </ItemGroup>
@@ -161,6 +162,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="ObjectLoader.h" />
     <ClInclude Include="PyramidMesh.h" />
+    <ClInclude Include="SceneLoader.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SphereMesh.h" />
     <ClInclude Include="tiny_obj_loader.h" />

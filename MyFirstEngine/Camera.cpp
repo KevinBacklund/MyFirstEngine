@@ -52,3 +52,8 @@ void Camera::setSensitivity(float sens)
 {
     sensitivity = sens;
 }
+
+void Camera::setPosition(const glm::vec3& position)
+{
+    cameraPosition = position;
+}

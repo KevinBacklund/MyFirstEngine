@@ -13,6 +13,7 @@ public:
 	glm::vec3 getPosition();
 	glm::vec3 getFront();
 	void setSensitivity(float sens);
+	void setPosition(const glm::vec3& position);
 
 private:
 	glm::vec3 cameraPosition;

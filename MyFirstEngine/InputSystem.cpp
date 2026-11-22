@@ -7,6 +7,8 @@ InputSystem::InputSystem()
 	BindAction(Actions::MoveLeft, GLFW_KEY_A);
 	BindAction(Actions::MoveRight, GLFW_KEY_D);
 	BindAction(Actions::ToggleSplitScreen, GLFW_KEY_M);
+	BindAction(Actions::SwapScene, GLFW_KEY_T);
+
 }
 
 void InputSystem::BindAction(Actions action, int glfwKey)

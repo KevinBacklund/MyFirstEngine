@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include "Camera.h"
 #include "InputSystem.h"
+#include "SceneLoader.h"
 
 #define PI 3.14159265358979323846f
 
@@ -22,22 +23,17 @@ int activePlayerCount = 1;
 
 std::unordered_map<std::string, ObjectLoader::Mesh> loadedMeshes;
 
-struct Object
-{
-	std::string meshName;
-	unsigned int textureID;
-	glm::vec3 position;
-	glm::vec3 scale;
-	glm::vec3 rotation;
-};
+std::vector<SceneLoader::Object> sceneObjects;
 
-std::unordered_map < std::string, Object*> sceneObjects;
+std::unordered_map <std::string, SceneLoader::Scene> loadedScenes;
+
+SceneLoader::Scene activeScene;
 
 struct Player
 {
 	Camera* playerCamera;
 	InputSystem* playerInput;
-	Object* playerModel;
+	SceneLoader::Object playerModel;
 };
 
 std::array<Player*, 2> players;
@@ -82,27 +78,24 @@ unsigned int CreateSolidColorTexture(unsigned char r, unsigned char g, unsigned 
 	return textureID;
 }
 
-void renderObj(const Object* obj, Shader* shader)
+void renderObj(const SceneLoader::Object obj, Shader* shader)
 {
-	shader->SetUniformVec3("offset", obj->position);
-	shader->SetUniformVec3("scale", obj->scale);
-	shader->SetUniformVec3("rotation", obj->rotation);
-	glBindTexture(GL_TEXTURE_2D, obj->textureID);
-	glBindVertexArray(loadedMeshes[obj->meshName].VAO);
-	glDrawArrays(GL_TRIANGLES, 0, loadedMeshes[obj->meshName].vertexCount);
+	shader->SetUniformVec3("offset", obj.position);
+	shader->SetUniformVec3("scale", obj.scale);
+	shader->SetUniformVec3("rotation", obj.rotation);
+	glBindVertexArray(loadedMeshes[obj.meshName].VAO);
+	glDrawArrays(GL_TRIANGLES, 0, loadedMeshes[obj.meshName].vertexCount);
 	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void renderScene(const std::unordered_map<std::string, Object*>& sceneObjects, Shader* shader, Player* player, int playerIndex)
+void renderScene(const std::vector<SceneLoader::Object>& sceneObjects, Shader* shader, Player* player, int playerIndex)
 {
 	shader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f));
 	shader->SetUniformMat4("view", player->playerCamera->getViewMatrix());
 	shader->SetUniformVec3("lightDirection", glm::vec3(0.0f, -1.0f, -1.0f));
 
-	for (const auto& pair : sceneObjects)
+	for (const auto& obj : sceneObjects)
 	{
-		const Object* obj = pair.second;
 		renderObj(obj, shader);
 	}
 
@@ -141,6 +134,16 @@ void cameraMovement(Player* player)
 	player->playerCamera->moveCamera(moveDirection * moveSpeed);
 
 	player->playerCamera->moveLookDirection(player->playerInput->GetMouseDelta());
+}
+
+void swapToScene(SceneLoader::Scene scene)
+{
+	activeScene = scene;
+	sceneObjects = activeScene.sceneObjects;
+	for (int i = 0; i < activePlayerCount; i++)
+	{
+		players[i]->playerCamera->setPosition(activeScene.playerStarts[i]);
+	}
 }
 
 int main()
@@ -208,19 +211,23 @@ int main()
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, checkPixels);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
 
 	unsigned int solidColorTex = CreateSolidColorTexture(255, 0, 0);
 
 	loadedMeshes = ObjectLoader().LoadObjects("../Assets/obj/", "MyObjectLoader");
+	loadedScenes = SceneLoader().LoadScenes();
+	activeScene = loadedScenes["SceneOne"];
+	sceneObjects = activeScene.sceneObjects;
 
-	sceneObjects["tree"] = new Object{ "tree", checkTex, glm::vec3(0.0f, -5.0f, -10.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
-	sceneObjects["pallet"] = new Object{ "Wooden_Pallet", solidColorTex, glm::vec3(4.0f, -5.0f, -6.0f), glm::vec3(3.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
-	sceneObjects["scroll"] = new Object{ "Scroll", checkTex, glm::vec3(-4.0f, 0.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
-	sceneObjects["reed"] = new Object{ "reed", solidColorTex, glm::vec3(0.0f, -5.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
-	sceneObjects["anvil"] = new Object{ "Anvil", checkTex, glm::vec3(1.4f, -2.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
+	players[0]->playerModel =  SceneLoader::Object( "dork",  players[0]->playerCamera->getPosition(), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 90.0f, 0.0f) );
+	players[1]->playerModel =  SceneLoader::Object("dork",  players[0]->playerCamera->getPosition(), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 90.0f, 0.0f));
 
-	players[0]->playerModel = new Object( "dork", checkTex, players[0]->playerCamera->getPosition(), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 90.0f, 0.0f) );
-	players[1]->playerModel = new Object("dork", checkTex, players[0]->playerCamera->getPosition(), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 90.0f, 0.0f));
+	glBindTexture(GL_TEXTURE_2D, checkTex);
+
+	int currentScene = 1;
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -242,8 +249,29 @@ int main()
 				isSplitScreen = !isSplitScreen;
 				activePlayerCount = isSplitScreen ? 2 : 1;
 			}
-			players[i]->playerModel->position = players[i]->playerCamera->getPosition();
-			players[i]->playerModel->position.y = -4.0f;
+			players[i]->playerModel.position = players[i]->playerCamera->getPosition();
+			players[i]->playerModel.position.y = -4.0f;
+
+			if (players[0]->playerInput->IsActionPressed(InputSystem::Actions::SwapScene))
+			{
+				switch (currentScene)
+				{
+				case 1:
+					swapToScene(loadedScenes["SceneTwo"]);
+					currentScene = 2;
+					break;
+				case 2:
+					swapToScene(loadedScenes["SceneThree"]);
+					currentScene = 3;
+					break;
+				case 3:
+					swapToScene(loadedScenes["SceneOne"]);
+					currentScene = 1;
+					break;
+				default:
+					break;
+				}
+			}
 
 			renderScene(sceneObjects, myShader, players[i], i);
 		}
