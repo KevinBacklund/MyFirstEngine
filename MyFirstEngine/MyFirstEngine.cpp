@@ -4,16 +4,18 @@
 #include <array>
 #include "Shader.h"
 #include "cubemesh.h"
-#include "pyramidmesh.h"
-#include "spheremesh.h"
 #include "glm.hpp"
 #include "ObjectLoader.h"
 #include <unordered_map>
+#include "Camera.h"
+#include "InputSystem.h"
 
 #define PI 3.14159265358979323846f
 
 int width, height;
 Shader* myShader;
+Camera* myCamera;
+InputSystem* myInputSystem;
 float vertices[] = {
 -0.25f, -0.25f, 0.0f,
 0.25f, -0.25f, 0.0f,
@@ -58,21 +60,6 @@ GLenum CheckError()
 	return errorCode;
 }
 
-float DegreesToRadians(float degrees)
-{
-	return degrees * (PI / 180.0f);
-}
-
-float SinDegrees(float degrees)
-{
-	return sinf(DegreesToRadians(degrees));
-}
-
-float CosDegrees(float degrees)
-{
-	return cosf(DegreesToRadians(degrees));
-}
-
 unsigned int CreateSolidColorTexture(unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255)
 {
 	unsigned int textureID;
@@ -104,6 +91,40 @@ void renderObj(const Object& obj, Shader* shader)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void renderScene(const std::unordered_map<std::string, Object>& sceneObjects, Shader* shader)
+{
+	shader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f));
+	shader->SetUniformMat4("view", myCamera->getViewMatrix());
+	shader->SetUniformVec3("lightDirection", glm::vec3(0.0f, -1.0f, -1.0f));
+
+	for (const auto& pair : sceneObjects)
+	{
+		const Object& obj = pair.second;
+		renderObj(obj, shader);
+	}
+}
+
+void cameraMovement(Camera* camera, InputSystem* input)
+{
+	float moveSpeed = 0.1f;
+
+	glm::vec3 flatForward = { camera->getFront().x, 0.0f, camera->getFront().z };
+
+	glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+	glm::vec3 flatRight = glm::normalize(glm::cross(flatForward, worldUp));
+
+	glm::vec3 moveDirection(0.0f);
+
+	if (input->IsActionHeld(InputSystem::MoveForward)) moveDirection += flatForward;
+	if (input->IsActionHeld(InputSystem::MoveBack))    moveDirection -= flatForward;
+	if (input->IsActionHeld(InputSystem::MoveRight))   moveDirection += flatRight;
+	if (input->IsActionHeld(InputSystem::MoveLeft))    moveDirection -= flatRight;
+
+	camera->moveCamera(moveDirection * moveSpeed);
+
+	camera->moveLookDirection(input->GetMouseDelta());
+}
+
 int main()
 {
 	GLFWwindow* window;
@@ -131,6 +152,9 @@ int main()
 
 	myShader = new Shader();
 	myShader->Initialize("VertexShader.glsl", "FragmentShader.glsl");
+
+	myCamera = new Camera();
+	myInputSystem = new InputSystem;
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	CheckError();
@@ -163,7 +187,7 @@ int main()
 	sceneObjects["pallet"] = { "Wooden_Pallet", solidColorTex, glm::vec3(4.0f, -5.0f, -6.0f), glm::vec3(3.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
 	sceneObjects["scroll"] = { "Scroll", checkTex, glm::vec3(-4.0f, 0.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
 	sceneObjects["reed"] = { "reed", solidColorTex, glm::vec3(0.0f, -5.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
-	sceneObjects["anvil"] = { "Anvil", checkTex, glm::vec3(1.4f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
+	sceneObjects["anvil"] = { "Anvil", checkTex, glm::vec3(1.4f, -2.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f) };
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -171,26 +195,13 @@ int main()
 
 		myShader->Use();
 
-		myShader->SetUniformMat4("projection", glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f)* glm::lookAt(glm::vec3(0.0f, 1.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-		myShader->SetUniformVec3("lightDirection", glm::vec3(0.0f, -1.0f, -1.0f));
-
 		glActiveTexture(GL_TEXTURE0);
 
-		renderObj(sceneObjects["tree"], myShader);
-		renderObj(sceneObjects["pallet"], myShader);
-		renderObj(sceneObjects["scroll"], myShader);
-		renderObj(sceneObjects["reed"], myShader);
-		renderObj(sceneObjects["anvil"], myShader);
+		myInputSystem->ProccesInput(window);
 
-		//renderObj(treeMesh, checkTex, myShader, glm::vec3(0.0f, -5.0f, -10.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		cameraMovement(myCamera, myInputSystem);
 
-		//renderObj(palletMesh, solidColorTex, myShader, glm::vec3(4.0f, -5.0f, -6.0f), glm::vec3(3.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-		//renderObj(scrollMesh, checkTex, myShader,glm::vec3(-4.0f, 0.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-		//renderObj(reedMesh, solidColorTex, myShader, glm::vec3(0.0f, -5.0f, -5.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-		//renderObj(anvilMesh, checkTex, myShader, glm::vec3(1.4f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		renderScene(sceneObjects, myShader);
 
 		glfwSwapBuffers(window);
 

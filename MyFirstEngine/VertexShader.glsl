@@ -8,6 +8,7 @@ uniform vec3 scale;
 uniform vec3 rotation;
 uniform vec3 color;
 uniform mat4 projection;
+uniform mat4 view;
 
 out vec4 vertexColor;
 out vec3 vertexNormal;
@@ -41,7 +42,7 @@ void main()
     rotatedPosition.y = tempY * cosX - rotatedPosition.z * sinX;
     rotatedPosition.z = tempY * sinX + rotatedPosition.z * cosX;
 
-	gl_Position = projection * vec4(rotatedPosition + offset, 1.0);
+	gl_Position = projection * view * vec4(rotatedPosition + offset, 1.0);
 	vertexColor = vec4(color, 1.0);
     vertexNormal = aNormal;
 	vertexPosition = aPos;
